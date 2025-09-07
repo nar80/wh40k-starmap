@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Read(F:\\Hobby-Projekte/**)",
+      "Read(F:\\Hobby-Projekte\\WhRtModificationTemplate\\Blueprints/**)",
+      "Read(F:\\Hobby-Projekte\\WhRtModificationTemplate/**)",
+      "Read(F:\\Hobby-Projekte\\WhRtModificationTemplate\\Blueprints\\GlobalMaps/**)",
+      "Read(F:\\Hobby-Projekte\\WhRtModificationTemplate\\Strings/**)",
+      "Read(F:\\Hobby-Projekte\\WhRtModificationTemplate/**)",
+      "Read(F:\\Hobby-Projekte\\WhRtModificationTemplate\\Blueprints\\GlobalMaps/**)",
+      "Bash(grep:*)",
+      "Read(F:\\Hobby-Projekte\\spielleiter-tool/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
