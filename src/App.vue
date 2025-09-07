@@ -214,8 +214,8 @@ const syncData = async () => {
 }
 
 // Initialize environment configuration on mount
-onMounted(() => {
-  initializeEnvironment(gameStore)
+onMounted(async () => {
+  await initializeEnvironment(gameStore)
 })
 
 const saveGame = async () => {

@@ -31,7 +31,7 @@ export const config = {
 }
 
 // Initialize player mode on startup if configured
-export const initializeEnvironment = (gameStore) => {
+export const initializeEnvironment = async (gameStore) => {
   if (config.isPlayerMode) {
     gameStore.setPlayerMode(true)
   }
@@ -46,6 +46,17 @@ export const initializeEnvironment = (gameStore) => {
   if (gistUrl) {
     gameStore.remoteDataUrl = gistUrl
     localStorage.setItem('remoteDataUrl', gistUrl)
+    
+    // In player mode, immediately sync data from Gist on startup
+    if (config.isPlayerMode) {
+      console.log('Player mode detected, syncing with remote data...')
+      try {
+        await gameStore.syncWithRemote({ updateExistingNPCs: false })
+        console.log('Initial sync completed')
+      } catch (error) {
+        console.error('Initial sync failed:', error)
+      }
+    }
   }
   
   // Set GitHub token if available
