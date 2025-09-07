@@ -5,12 +5,16 @@
         <q-toolbar-title>
           <q-icon name="rocket_launch" />
           WH40k Sternenkarte
-          <span v-if="mapStore.currentMapName" class="text-subtitle2 q-ml-md">
+          <span v-if="gameStore.isPlayerMode" class="text-subtitle2 q-ml-md">
+            ({{ gameStore.currentCampaign === 'main' ? 'Hauptkampagne' : 'Nebenkampagne' }})
+          </span>
+          <span v-else-if="mapStore.currentMapName" class="text-subtitle2 q-ml-md">
             ({{ mapStore.currentMapName === 'default' ? 'Standard Koronus' : mapStore.currentMapName }})
           </span>
         </q-toolbar-title>
         
         <q-btn 
+          v-if="!gameStore.isPlayerMode"
           flat 
           round 
           dense 
@@ -19,7 +23,7 @@
         >
           <q-tooltip>Fog of War {{ gameStore.fogOfWarEnabled ? 'ausschalten' : 'einschalten' }}</q-tooltip>
         </q-btn>
-        <q-separator dark vertical class="q-mx-sm" />
+        <q-separator dark vertical class="q-mx-sm" v-if="!gameStore.isPlayerMode" />
         <q-btn 
           flat 
           round 
@@ -55,6 +59,22 @@
           <q-tooltip>Edit-Modus {{ gameStore.editMode ? 'ausschalten' : 'einschalten' }}</q-tooltip>
         </q-btn>
         <q-separator dark vertical class="q-mx-sm" />
+        <!-- Campaign Selector for Players -->
+        <q-btn-toggle
+          v-if="gameStore.isPlayerMode"
+          v-model="gameStore.currentCampaign"
+          toggle-color="black"
+          text-color="grey-5"
+          :options="[
+            {label: 'Haupt', value: 'main'},
+            {label: 'Neben', value: 'side'}
+          ]"
+          @update:model-value="switchPlayerCampaign"
+          flat
+          size="sm"
+          class="q-mr-sm"
+          style="border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;"
+        />
         <!-- Sync Button for Players -->
         <q-btn 
           v-if="gameStore.isPlayerMode"
@@ -62,19 +82,11 @@
           round 
           dense 
           icon="sync"
-          color="white"
+          color="amber"
           @click="syncData"
           :loading="syncing"
         >
-          <q-tooltip>Neue Daten vom Spielleiter laden</q-tooltip>
-          <q-badge 
-            v-if="gameStore.lastSyncTime" 
-            floating 
-            color="transparent"
-            class="text-caption"
-          >
-            {{ timeSinceSync }}
-          </q-badge>
+          <q-tooltip>Neue Daten vom Spielleiter laden. </q-tooltip>
         </q-btn>
         <!-- Player Mode Settings -->
         <q-btn 
@@ -119,20 +131,23 @@
             <q-tooltip>Markieren Sie Karten als Favoriten im Edit-Modus</q-tooltip>
           </q-btn>
         </div>
-        <q-separator dark vertical class="q-mx-sm" />
-        <q-btn flat round dense icon="save" @click="saveGame">
-          <q-tooltip>Spielstand speichern</q-tooltip>
-        </q-btn>
-        <q-btn flat round dense icon="folder_open" @click="loadGame">
-          <q-tooltip>Spielstand laden</q-tooltip>
-        </q-btn>
-        <q-separator dark vertical class="q-mx-sm" />
-        <q-btn flat round dense icon="backup" color="green" @click="createBackup">
-          <q-tooltip>Backup erstellen</q-tooltip>
-        </q-btn>
-        <q-btn flat round dense icon="restore" color="orange" @click="restoreBackup">
-          <q-tooltip>Backup wiederherstellen</q-tooltip>
-        </q-btn>
+        <!-- Save/Load only for GM -->
+        <template v-if="!gameStore.isPlayerMode">
+          <q-separator dark vertical class="q-mx-sm" />
+          <q-btn flat round dense icon="save" @click="saveGame">
+            <q-tooltip>Spielstand speichern</q-tooltip>
+          </q-btn>
+          <q-btn flat round dense icon="folder_open" @click="loadGame">
+            <q-tooltip>Spielstand laden</q-tooltip>
+          </q-btn>
+          <q-separator dark vertical class="q-mx-sm" />
+          <q-btn flat round dense icon="backup" color="green" @click="createBackup">
+            <q-tooltip>Backup erstellen</q-tooltip>
+          </q-btn>
+          <q-btn flat round dense icon="restore" color="orange" @click="restoreBackup">
+            <q-tooltip>Backup wiederherstellen</q-tooltip>
+          </q-btn>
+        </template>
       </q-toolbar>
     </q-header>
 
@@ -177,6 +192,34 @@ const timeSinceSync = computed(() => {
     return `${Math.floor(diffMinutes / 1440)}d`
   }
 })
+
+// Switch campaign for players
+const switchPlayerCampaign = async (campaign) => {
+  // Update the campaign
+  gameStore.setCampaign(campaign)
+  
+  // Get URLs from environment or use defaults
+  const gistUrls = {
+    main: import.meta.env.VITE_GIST_URL_MAIN || 'https://api.github.com/gists/392231ea5b2f0f3d8abdf06fdbd75bd3',
+    side: import.meta.env.VITE_GIST_URL_SIDE || 'https://api.github.com/gists/2c5f0c244be82b00acc8090c2cbffc6e'
+  }
+  
+  gameStore.remoteDataUrl = gistUrls[campaign]
+  localStorage.setItem('remoteDataUrl', gistUrls[campaign])
+  
+  // Automatically sync the new campaign data
+  syncing.value = true
+  const success = await gameStore.syncWithRemote({ updateExistingNPCs: false })
+  syncing.value = false
+  
+  if (success) {
+    $q.notify({
+      type: 'positive',
+      message: `Gewechselt zu ${campaign === 'main' ? 'Hauptkampagne' : 'Nebenkampagne'}`,
+      position: 'top'
+    })
+  }
+}
 
 // Manual sync function
 const syncData = async () => {

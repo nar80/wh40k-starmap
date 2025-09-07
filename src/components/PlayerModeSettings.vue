@@ -114,6 +114,12 @@ const lastSync = ref(gameStore.lastSyncTime)
 const syncing = ref(false)
 const uploading = ref(false)
 
+// Store Gist IDs for both campaigns
+const gistIds = {
+  main: import.meta.env.VITE_GIST_ID_MAIN || localStorage.getItem('gistIdMain') || '',
+  side: import.meta.env.VITE_GIST_ID_SIDE || localStorage.getItem('gistIdSide') || ''
+}
+
 const show = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val)
@@ -136,12 +142,29 @@ const updatePlayerMode = (value) => {
 }
 
 const updateCampaign = (value) => {
+  campaign.value = value
+  
+  // For GM: Just switch which campaign we'll upload to
+  // Don't load any data - GM decides what's currently loaded
+  if (!gameStore.isPlayerMode) {
+    $q.notify({
+      type: 'info',
+      message: `Upload-Ziel: ${value === 'main' ? 'Hauptkampagne' : 'Nebenkampagne'}`,
+      caption: 'Beim nächsten Upload wird diese Kampagne aktualisiert',
+      position: 'top'
+    })
+    return
+  }
+  
+  // For Players (shouldn't happen - they don't see this dialog)
+  // But if they did, they would need to sync from the right gist
   gameStore.setCampaign(value)
-  $q.notify({
-    type: 'info',
-    message: `Kampagne gewechselt zu: ${value === 'main' ? 'Hauptkampagne' : 'Nebenkampagne'}`,
-    position: 'top'
-  })
+  const gistId = gistIds[value]
+  if (gistId) {
+    dataUrl.value = `https://api.github.com/gists/${gistId}`
+    gameStore.remoteDataUrl = dataUrl.value
+    localStorage.setItem('remoteDataUrl', dataUrl.value)
+  }
 }
 
 const updateDataUrl = () => {
@@ -160,10 +183,13 @@ const syncNow = async () => {
 
 
 const uploadToGist = async () => {
-  if (!dataUrl.value) {
+  // Use the correct Gist ID for the current campaign
+  const currentGistId = gistIds[campaign.value]
+  
+  if (!currentGistId) {
     $q.notify({
       type: 'warning',
-      message: 'Bitte erst eine GitHub Gist URL konfigurieren',
+      message: `Keine Gist ID für ${campaign.value === 'main' ? 'Hauptkampagne' : 'Nebenkampagne'} konfiguriert`,
       position: 'top'
     })
     return
@@ -186,9 +212,8 @@ const uploadToGist = async () => {
       lastUpdate: new Date().toISOString()
     }
     
-    // Extract Gist ID from URL
-    const gistId = dataUrl.value.match(/gist\.github\.com\/.*\/([a-f0-9]+)/)?.[1] || 
-                   dataUrl.value.match(/api\.github\.com\/gists\/([a-f0-9]+)/)?.[1]
+    // Use the stored Gist ID
+    const gistId = currentGistId
     
     if (!gistId) {
       throw new Error('Ungültige Gist URL')

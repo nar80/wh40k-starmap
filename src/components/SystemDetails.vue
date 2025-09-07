@@ -57,7 +57,7 @@
         <div v-if="gameStore.selectedSystem.id === gameStore.playerShip.currentSystem">
           <q-badge color="positive">Aktuelle Position</q-badge>
         </div>
-        <div v-else-if="canTravelToSelected">
+        <div v-else-if="!gameStore.isPlayerMode && canTravelToSelected">
           <q-btn 
             color="primary" 
             label="Hierher reisen" 
@@ -66,7 +66,7 @@
             class="full-width q-mt-sm"
           />
         </div>
-        <div v-else>
+        <div v-else-if="!gameStore.isPlayerMode">
           <q-badge color="negative">Nicht erreichbar</q-badge>
           <div class="text-caption q-mt-xs">
             Kein direkter Hyperraum-Korridor
