@@ -590,10 +590,16 @@ export const useGameStore = defineStore('game', () => {
     }
     
     try {
+      console.log('Syncing from URL:', remoteDataUrl.value)
       const response = await fetch(remoteDataUrl.value)
       if (!response.ok) throw new Error('Failed to fetch remote data')
       
       const remoteData = await response.json()
+      console.log('Remote data received:', {
+        systems: remoteData.systems?.length || 0,
+        hyperlanes: remoteData.hyperlanes?.length || 0,
+        discoveredSystems: remoteData.discoveredSystems?.length || 0
+      })
       
       // Save ALL local notes - they are never touched by sync
       const localNotes = { ...systemNotes.value }
@@ -671,9 +677,20 @@ export const useGameStore = defineStore('game', () => {
       lastSyncTime.value = new Date().toISOString()
       localStorage.setItem('lastSyncTime', lastSyncTime.value)
       
+      // Trigger map redraw after sync
+      window.dispatchEvent(new Event('mapDataChanged'))
+      
+      // Save synced data to localStorage so it persists
+      localStorage.setItem('systems', JSON.stringify(systems.value))
+      localStorage.setItem('hyperlanes', JSON.stringify(hyperlanes.value))
+      localStorage.setItem('systemPlanets', JSON.stringify(systemPlanets.value))
+      localStorage.setItem('discoveredSystems', JSON.stringify(discoveredSystems.value))
+      localStorage.setItem('playerShip', JSON.stringify(playerShip.value))
+      
       Notify.create({
         type: 'positive',
         message: 'Kampagnendaten erfolgreich synchronisiert',
+        caption: `${systems.value.length} Systeme geladen`,
         position: 'top'
       })
       
