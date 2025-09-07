@@ -9,8 +9,8 @@
       </q-card-section>
 
       <q-card-section>
-        <!-- Player Mode Toggle -->
-        <div class="q-mb-md">
+        <!-- Player Mode Toggle - only show in development/local environment -->
+        <div v-if="!isProduction" class="q-mb-md">
           <q-toggle
             v-model="playerMode"
             label="Spieler-Modus aktivieren"
@@ -20,6 +20,16 @@
           <div class="text-caption text-grey-7">
             Deaktiviert Reise- und Bearbeitungsfunktionen für Spieler
           </div>
+        </div>
+        
+        <!-- Info for players in production -->
+        <div v-else-if="playerMode" class="q-mb-md">
+          <q-banner class="bg-blue-1">
+            <template v-slot:avatar>
+              <q-icon name="info" color="blue" />
+            </template>
+            Du bist im Spieler-Modus. Reise- und Bearbeitungsfunktionen sind deaktiviert.
+          </q-banner>
         </div>
 
         <q-separator class="q-my-md" />
@@ -68,8 +78,8 @@
         </div>
 
 
-        <!-- Upload Campaign Data (GM only) -->
-        <div v-if="!playerMode" class="q-mb-md">
+        <!-- Upload Campaign Data (GM only, not in production player mode) -->
+        <div v-if="!playerMode || !isProduction" class="q-mb-md">
           <q-separator class="q-my-md" />
           <div class="text-subtitle2 q-mb-sm">Kampagnendaten hochladen</div>
           <q-btn
@@ -113,6 +123,9 @@ const dataUrl = ref(gameStore.remoteDataUrl)
 const lastSync = ref(gameStore.lastSyncTime)
 const syncing = ref(false)
 const uploading = ref(false)
+
+// Check if running in production (Netlify) or local development
+const isProduction = import.meta.env.PROD || window.location.hostname !== 'localhost'
 
 // Store Gist IDs for both campaigns
 const gistIds = {

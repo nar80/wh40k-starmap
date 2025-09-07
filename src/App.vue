@@ -94,7 +94,7 @@
           round 
           dense 
           icon="settings"
-          :color="gameStore.isPlayerMode ? 'primary' : 'white'"
+          :color="gameStore.isPlayerMode ? 'amber' : 'white'"
           @click="showPlayerSettings = true"
         >
           <q-tooltip>{{ gameStore.isPlayerMode ? 'Spieler-Modus aktiv' : 'Einstellungen' }}</q-tooltip>

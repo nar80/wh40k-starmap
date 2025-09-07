@@ -32,7 +32,12 @@
             @click="openTravelCalculator"
             icon="explore"
             class="full-width q-mt-sm"
-          />
+            :disable="gameStore.isPlayerMode"
+          >
+            <q-tooltip v-if="gameStore.isPlayerMode">
+              Nur der Spielleiter kann das Schiff bewegen
+            </q-tooltip>
+          </q-btn>
         </div>
         <div v-else>
           <q-badge color="negative">Nicht erreichbar</q-badge>
@@ -57,16 +62,21 @@
         <div v-if="gameStore.selectedSystem.id === gameStore.playerShip.currentSystem">
           <q-badge color="positive">Aktuelle Position</q-badge>
         </div>
-        <div v-else-if="!gameStore.isPlayerMode && canTravelToSelected">
+        <div v-else-if="canTravelToSelected">
           <q-btn 
             color="primary" 
             label="Hierher reisen" 
             @click="openTravelCalculator"
             icon="rocket"
             class="full-width q-mt-sm"
-          />
+            :disable="gameStore.isPlayerMode"
+          >
+            <q-tooltip v-if="gameStore.isPlayerMode">
+              Nur der Spielleiter kann das Schiff bewegen
+            </q-tooltip>
+          </q-btn>
         </div>
-        <div v-else-if="!gameStore.isPlayerMode">
+        <div v-else>
           <q-badge color="negative">Nicht erreichbar</q-badge>
           <div class="text-caption q-mt-xs">
             Kein direkter Hyperraum-Korridor
