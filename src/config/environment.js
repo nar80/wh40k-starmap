@@ -47,11 +47,23 @@ export const initializeEnvironment = async (gameStore) => {
     gameStore.remoteDataUrl = gistUrl
     localStorage.setItem('remoteDataUrl', gistUrl)
     
-    // Don't automatically sync on startup - only sync when explicitly requested
-    // This preserves the current game state on browser reload
+    // In player mode, sync if we don't have local data yet
     if (config.isPlayerMode) {
-      console.log('Player mode detected, Gist URL configured:', gistUrl)
-      console.log('Use sync button to manually sync with remote data')
+      console.log('Player mode detected, checking for local data...')
+      const campaignKey = `campaign_${config.defaultCampaign}`
+      const hasLocalData = localStorage.getItem(campaignKey)
+      
+      if (!hasLocalData) {
+        console.log('No local data found, syncing with remote...')
+        try {
+          await gameStore.syncWithRemote({ updateExistingNPCs: false })
+          console.log('Initial sync completed')
+        } catch (error) {
+          console.error('Initial sync failed:', error)
+        }
+      } else {
+        console.log('Local data exists, skipping auto-sync')
+      }
     }
   }
   
