@@ -790,19 +790,12 @@ export const useGameStore = defineStore('game', () => {
       playerShip.value = data.playerShip || playerShip.value
     }
     
-    // Try to sync with remote if URL is configured
-    if (remoteDataUrl.value) {
-      await syncWithRemote()
-    }
+    // Don't automatically sync - only sync when explicitly requested by user
+    // This preserves the current game state on browser reload
   }
   
-  // Initial sync when player mode is enabled
-  watch(isPlayerMode, (enabled) => {
-    if (enabled && remoteDataUrl.value) {
-      // Only sync once when entering player mode
-      syncWithRemote()
-    }
-  }, { immediate: true })
+  // Don't auto-sync when player mode is enabled - manual sync only
+  // This gives users control over when to sync data
   
   // Load ship configuration on init
   loadShipConfiguration()

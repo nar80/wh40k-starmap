@@ -733,11 +733,11 @@
           <!-- Rang 1: Lord-Kapitän -->
           <div class="text-subtitle1 text-amber q-mb-sm">RANG 1</div>
           <div class="row q-col-gutter-lg q-mb-lg justify-center">
-            <div class="col-4 col-md-3 col-lg-1" style="min-width: 200px; max-width: 200px;">
+            <div class="col-4 col-md-3 col-lg-1" style="min-width: 200px;">
               <q-card class="bg-grey-9 crew-card">
                 <q-img 
                   :src="getCrewPortrait('lord-kapitan')"
-                  :ratio="3/4"
+                 style="max-width: 220px; height: 200px;"
                   class="crew-portrait"
                   @error="(e) => handlePortraitError(e, 'lord-kapitan')"
                 >
@@ -748,7 +748,7 @@
                   </template>
                 </q-img>
                 <q-card-section class="q-pa-xs">
-                  <div class="text-caption text-amber text-center" style="font-size: 10px;">Lord-Kapitän</div>
+                  <div class="text-caption text-amber text-center" style="font-size: 12px;">Lord-Kapitän</div>
                   <q-input
                     v-model="ship.crew.lordKapitan.name"
                     dense
@@ -778,7 +778,7 @@
               <q-card class="bg-grey-9 crew-card">
                 <q-img 
                   :src="getCrewPortrait(position.id)"
-                  :ratio="3/4"
+                      :ratio="3/4"
                   class="crew-portrait"
                   @error="(e) => handlePortraitError(e, position.id)"
                 >
@@ -789,7 +789,7 @@
                   </template>
                 </q-img>
                 <q-card-section class="q-pa-xs">
-                  <div class="text-caption text-amber text-center" style="font-size: 9px;">{{ position.title }}</div>
+                  <div class="text-caption text-amber text-center" style="font-size: 12px;">{{ position.title }}</div>
                   <q-input
                     v-model="ship.crew[position.id].name"
                     dense
@@ -815,7 +815,7 @@
           <!-- Rang 3: Spezialisten -->
           <div class="text-subtitle1 text-amber q-mb-sm">RANG 3</div>
           <div class="row q-col-gutter-sm q-mb-lg justify-center">
-            <div class="col-2 col-md-1" v-for="position in rang3Positions" :key="position.id" style="min-width: 140px; max-width: 140px;">
+            <div class="col-2 col-md-1" v-for="position in rang3Positions" :key="position.id" style="min-width: 180px; max-width: 180px;">
               <q-card class="bg-grey-9 crew-card">
                 <q-img 
                   :src="getCrewPortrait(position.id)"
@@ -830,12 +830,22 @@
                   </template>
                 </q-img>
                 <q-card-section class="q-pa-xs">
-                  <div class="text-caption text-amber text-center text-truncate" style="font-size: 8px;">{{ position.title }}</div>
+                  <div class="text-caption text-amber text-center text-truncate" style="font-size: 12px;">{{ position.title }}</div>
                   <q-input
                     v-model="ship.crew[position.id].name"
                     dense
                     dark
                     label="Name"
+                    @change="saveShip"
+                  />
+                    <q-input
+                    v-model="ship.crew[position.id].notes"
+                    dense
+                    dark
+                    type="textarea"
+                    label="Notizen"
+                    rows="3"
+                    input-style="font-size: 9px; line-height: 1.2;"
                     @change="saveShip"
                   />
                 </q-card-section>
@@ -1046,7 +1056,7 @@ const crewRoleOptions = [
 
 // Crew hierarchy definitions
 const rang2Positions = [
-  { id: 'ersterOffizier', title: 'Erster Offizier' },
+  { id: 'ersterOffizier', title: 'Seneschall' },
   { id: 'maschinenseherPrimus', title: 'Maschinenseher Primus' },
   { id: 'primarisNavigator', title: 'Primaris-Navigator' },
   { id: 'erzMilitant', title: 'Erz-Militant' },

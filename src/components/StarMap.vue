@@ -376,6 +376,15 @@ const drawHyperlanes = () => {
       }
     }
   })
+  
+  // Make sure ship stays on top of hyperlanes if it exists
+  if (shipSprite && viewport.children.includes(shipSprite)) {
+    viewport.setChildIndex(shipSprite, viewport.children.length - 1)
+    // And target indicator on top of that
+    if (targetIndicator && viewport.children.includes(targetIndicator)) {
+      viewport.setChildIndex(targetIndicator, viewport.children.length - 1)
+    }
+  }
 }
 
 const getStarColor = (starType, isDiscovered) => {
@@ -601,8 +610,8 @@ const drawShip = async () => {
       shipSprite = new PIXI.Sprite(texture)
       
       // Scale the ship to appropriate size (larger to match bigger systems)
-      shipSprite.width = 80
-      shipSprite.height = 35
+      shipSprite.width = 82
+      shipSprite.height = 37
       
       // Center the anchor
       shipSprite.anchor.set(0.5)
@@ -613,6 +622,9 @@ const drawShip = async () => {
       
       // Slight rotation for dynamic look
       shipSprite.rotation = 0
+      
+      // Add tint for better visibility - darker bronze/copper color
+      shipSprite.tint = 0xCC7733
       
       // Make ship interactive for double-click
       shipSprite.eventMode = 'static'
@@ -644,9 +656,12 @@ const drawShip = async () => {
     
     viewport.addChild(shipSprite)
     
-    // Ensure ship is on top but below target indicator
+    // Ensure ship is rendered on top of everything except target indicator
+    viewport.setChildIndex(shipSprite, viewport.children.length - 1)
+    
+    // If target indicator exists, make sure it stays on top
     if (targetIndicator && viewport.children.includes(targetIndicator)) {
-      viewport.setChildIndex(shipSprite, viewport.children.length - 2)
+      viewport.setChildIndex(targetIndicator, viewport.children.length - 1)
     }
   }
 }
