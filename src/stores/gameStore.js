@@ -576,10 +576,11 @@ export const useGameStore = defineStore('game', () => {
   
   // Campaign Management
   const setCampaign = (campaign) => {
+    const wasChanged = currentCampaign.value !== campaign
     currentCampaign.value = campaign
     localStorage.setItem('currentCampaign', campaign)
-    // Load campaign-specific save
-    loadCampaignData(campaign)
+    // Load campaign-specific save, only sync if campaign actually changed
+    loadCampaignData(campaign, wasChanged)
   }
   
   // Sync with remote data (GitHub Gist or other source)
@@ -591,7 +592,17 @@ export const useGameStore = defineStore('game', () => {
     
     try {
       console.log('Syncing from URL:', remoteDataUrl.value)
-      const response = await fetch(remoteDataUrl.value)
+      
+      // Check if we need authentication (for private Gists)
+      const token = localStorage.getItem('githubToken')
+      const fetchOptions = {}
+      if (token && remoteDataUrl.value.includes('api.github.com')) {
+        fetchOptions.headers = {
+          'Authorization': `token ${token}`
+        }
+      }
+      
+      const response = await fetch(remoteDataUrl.value, fetchOptions)
       if (!response.ok) throw new Error('Failed to fetch remote data')
       
       const gistData = await response.json()
@@ -777,7 +788,7 @@ export const useGameStore = defineStore('game', () => {
   }
   
   // Load campaign-specific data
-  const loadCampaignData = async (campaign) => {
+  const loadCampaignData = async (campaign, shouldSync = false) => {
     const campaignKey = `campaign_${campaign}`
     const savedData = localStorage.getItem(campaignKey)
     
@@ -790,8 +801,10 @@ export const useGameStore = defineStore('game', () => {
       playerShip.value = data.playerShip || playerShip.value
     }
     
-    // Don't automatically sync - only sync when explicitly requested by user
-    // This preserves the current game state on browser reload
+    // Only sync if explicitly requested (when switching campaigns, not on browser reload)
+    if (shouldSync && remoteDataUrl.value) {
+      await syncWithRemote()
+    }
   }
   
   // Don't auto-sync when player mode is enabled - manual sync only
