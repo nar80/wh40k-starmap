@@ -47,15 +47,11 @@ export const initializeEnvironment = async (gameStore) => {
     gameStore.remoteDataUrl = gistUrl
     localStorage.setItem('remoteDataUrl', gistUrl)
     
-    // In player mode, immediately sync data from Gist on startup
+    // Don't automatically sync on startup - only sync when explicitly requested
+    // This preserves the current game state on browser reload
     if (config.isPlayerMode) {
-      console.log('Player mode detected, syncing with remote data...')
-      try {
-        await gameStore.syncWithRemote({ updateExistingNPCs: false })
-        console.log('Initial sync completed')
-      } catch (error) {
-        console.error('Initial sync failed:', error)
-      }
+      console.log('Player mode detected, Gist URL configured:', gistUrl)
+      console.log('Use sync button to manually sync with remote data')
     }
   }
   

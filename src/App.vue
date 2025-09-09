@@ -198,10 +198,10 @@ const switchPlayerCampaign = async (campaign) => {
   // Update the campaign
   gameStore.setCampaign(campaign)
   
-  // Get URLs from environment or use defaults
+  // Use raw URLs for public gists (no token needed, no rate limit)
   const gistUrls = {
-    main: import.meta.env.VITE_GIST_URL_MAIN || 'https://api.github.com/gists/392231ea5b2f0f3d8abdf06fdbd75bd3',
-    side: import.meta.env.VITE_GIST_URL_SIDE || 'https://api.github.com/gists/2c5f0c244be82b00acc8090c2cbffc6e'
+    main: import.meta.env.VITE_GIST_URL_MAIN || 'https://gist.githubusercontent.com/nar80/392231ea5b2f0f3d8abdf06fdbd75bd3/raw/campaign_main.json',
+    side: import.meta.env.VITE_GIST_URL_SIDE || 'https://gist.githubusercontent.com/nar80/2c5f0c244be82b00acc8090c2cbffc6e/raw/campaign_side.json'
   }
   
   gameStore.remoteDataUrl = gistUrls[campaign]

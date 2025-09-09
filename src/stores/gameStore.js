@@ -605,27 +605,27 @@ export const useGameStore = defineStore('game', () => {
       const response = await fetch(remoteDataUrl.value, fetchOptions)
       if (!response.ok) throw new Error('Failed to fetch remote data')
       
-      const gistData = await response.json()
+      const responseData = await response.json()
       
-      // GitHub Gist API returns data in a different structure
-      // We need to extract the actual content from the files object
+      // Determine if this is a Gist API response or direct JSON
       let remoteData = null
       
-      if (gistData.files) {
-        // This is a Gist response - find the campaign file
-        const campaignFile = Object.keys(gistData.files).find(
+      if (responseData.files) {
+        // This is a Gist API response - extract campaign file
+        const campaignFile = Object.keys(responseData.files).find(
           filename => filename.includes('campaign')
         )
         
-        if (campaignFile && gistData.files[campaignFile].content) {
-          console.log('Found campaign file:', campaignFile)
-          remoteData = JSON.parse(gistData.files[campaignFile].content)
+        if (campaignFile && responseData.files[campaignFile].content) {
+          console.log('Found campaign file in Gist API response:', campaignFile)
+          remoteData = JSON.parse(responseData.files[campaignFile].content)
         } else {
           throw new Error('No campaign file found in Gist')
         }
       } else {
-        // Direct JSON response (for backward compatibility)
-        remoteData = gistData
+        // Direct JSON response (raw URL or direct JSON file)
+        console.log('Using direct JSON response')
+        remoteData = responseData
       }
       
       console.log('Remote data received:', {
