@@ -2901,3 +2901,193 @@ export function calculateShipStats(hull, components) {
   
   return stats
 }
+
+// SCHIFFSVERGANGENHEIT
+export const shipHistories = {
+  haunted: {
+    id: 'haunted',
+    name: 'Heimgesucht',
+    description: 'Ein namenloser Schrecken aus seiner Vergangenheit plagt das Schiff. Die Raumfahrer erzählen sich Geschichten von Geistern, die die Korridore und Kabinen durchstreifen. Die Moral der Mannschaft sinkt permanent um 10. Seltsame Vorrichtungen flicken sich an den Sensorfelder, so dass das Schiff Ortung +6 erhält. Außerdem erleiden alle Nicht-Mannschaftsmitglieder -2 auf Beliebigen-Würfe, wenn sie das verfluchte Schiff steuern sollen, oder bei Überfall-kommandos auf das Schiff.',
+    bonuses: {
+      detection: 6,
+      morale: -10,
+      skills: ['-2 auf Überfall-Aktionen (Gegner)'],
+      situational: ['Geisterschiff - mysteriöse Erscheinungen möglich']
+    }
+  },
+  emperorsVessel: {
+    id: 'emperorsVessel',
+    name: 'Gesandter des Imperators',
+    description: 'Das Schiff ist eine wachsende Macht und Gnade des Gott-Imperators. Es ist ehrfurchtgebietend und einschüchternd. Die Charaktere erhalten +15 auf Einschüchtern-Würfe, alle anderen Interaktions-Würfe mit -5. Diese Boni und Mali kommen nur zur Anwendung, wenn bekannt ist, daß die Charaktere dieses Fahrzeug befehlen.',
+    bonuses: {
+      skills: ['+15 auf Einschüchtern', '-5 auf andere Interaktionen'],
+      situational: ['Symbol des Imperiums - extreme Reaktionen bei Xenos und Ketzern']
+    }
+  },
+  wolfInSheep: {
+    id: 'wolfInSheep',
+    name: 'Wolf im Schafspelz',
+    description: 'Unter dem unscheinbaren Äußeren des Fahrzeugs lauert ein Raubtier. Eine Komponente erscheint harmloser als sie ist. Das Schiff erleidet allerdings Energie -2, um die Tarnsysteme mit Energie zu versorgen.',
+    bonuses: {
+      power: -2,
+      situational: ['Eine Komponente ist getarnt/versteckt', 'Mögliche Geheimgänge oder versteckte Laderäume']
+    }
+  },
+  turbulentPast: {
+    id: 'turbulentPast',
+    name: 'Turbulente Vergangenheit',
+    description: 'Im Laufe der Jahre hat man mit dem Schiff zahlreiche Taten vollbracht, die für die einen heroisch und für die anderen verbrecherisch erscheinen. Eine Fraktion hasst euch (-20 Interaktion), eine andere respektiert euch (+20 Interaktion).',
+    bonuses: {
+      skills: ['+20 auf Interaktion mit einer Fraktion', '-20 auf Interaktion mit Feinden dieser Fraktion'],
+      situational: ['Berüchtigt - kann Vorteile oder Probleme bringen']
+    }
+  },
+  deathCult: {
+    id: 'deathCult',
+    name: 'Todeskult',
+    description: 'Bei der Mannschaft haben sich seltsame Versionen der imperialen Religion durchgesetzt, die dem Tod zu Ehren des Imperators glorifizieren. Senken Sie die Mannschaftsstärke permanent um 8. Aufgrund des unerschütterlichen Glaubens der Mannschaft reduziert sich jeder Moralverlust um 2 Punkte.',
+    bonuses: {
+      crew: -8,
+      shipTraits: ['Todeskult: Moralverlust um 2 reduziert', 'Fanatische Mannschaft']
+    }
+  },
+  salvaged: {
+    id: 'salvaged',
+    name: 'Aus einem Space Hulk geborgen',
+    description: 'Das Schiff wurde aus einem Space Hulk geborgen. Das Schiff ist sehr alt und von hoher Qualität, aber alle, die von seiner Vergangenheit wissen, fürchten es als verflucht. Das Schiff erhält Panzerung +1, Geschwindigkeit -1 und Manövrierfähigkeit +3. Bei Beliebtheit-Würfen wird zweimal gewürfelt und das schlechtere Ergebnis genommen.',
+    bonuses: {
+      armor: 1,
+      speed: -1,
+      maneuverability: 3,
+      risks: ['Verflucht - schlechteres von zwei Ergebnissen bei Beliebtheit']
+    }
+  },
+  temperamentalWarp: {
+    id: 'temperamentalWarp',
+    name: 'Temperamentvoller Warpantrieb',
+    description: 'Das Schiff leidet unter einem Flattern im Warpantrieb. Bei Warpreisen: W10 - bei 6 oder niedriger +1W5 Wochen Reisezeit, bei 7+ -1W5 Wochen Reisezeit (kann zur Ankunft vor Abflug führen!).',
+    bonuses: {
+      situational: ['Unberechenbarer Warpantrieb - variable Reisezeiten', 'Mögliche Zeitanomalien']
+    }
+  },
+  inDebt: {
+    id: 'inDebt',
+    name: 'Ungeregelte Finanzen',
+    description: 'Das Schiff wurde auf Kredit gekauft. Das Geld kann von einer Verbrecherbande, einem Adligen oder gar einem Angehörigen der Inquisition kommen. Projekte benötigen 50 zusätzliche Erfolgspunkte. Der Finanzier unterstützt euch aber mit Informationen.',
+    bonuses: {
+      projectBonuses: ['-50 Erfolgspunkte bei allen Projekten (Schulden)'],
+      situational: ['Verlässlicher Kontakt beim Kreditgeber', 'Gelegentliche Spezialaufträge vom Kreditgeber']
+    }
+  },
+  relicOfMars: {
+    id: 'relicOfMars',
+    name: 'Relikt vom Mars',
+    description: 'Das Fahrzeug ist mit uralten archäotechnischen Systemen ausgestattet. Eine Archäotechnik-Komponente ist kostenlos. -20 auf Tech-Gebrauch für Reparaturen. Die Techpriester vom Mars sehen das Schiff als heilig an.',
+    bonuses: {
+      skills: ['-20 auf Tech-Gebrauch für Reparaturen'],
+      situational: ['Eine kostenlose Archäotechnik-Komponente', 'Heilig für Techpriester - besondere Aufmerksamkeit']
+    }
+  },
+  xenophilous: {
+    id: 'xenophilous',
+    name: 'Xenophil',
+    description: 'Eine unbekannte Xenosrasse hat das Schiff mit Teilen ihrer blasphemischen Technologie ausgestattet. Eine Xenotech-Komponente kostenlos. -30 auf Reparaturen (-10 mit Verbotenes Wissen: Xenos). Der Ordo Xenos hat Interesse an diesem ketzerischen Fahrzeug.',
+    bonuses: {
+      skills: ['-30 auf Tech-Gebrauch für Reparaturen (-10 mit Xenos-Wissen)'],
+      situational: ['Eine kostenlose Xenotech-Komponente', 'Interesse des Ordo Xenos - Vorsicht geboten'],
+      risks: ['Ketzerische Technologie - mögliche Inquisitions-Untersuchung']
+    }
+  }
+}
+
+// SCHIFFS-EIGENHEITEN
+export const shipQuirks = {
+  tasteForTrouble: {
+    id: 'tasteForTrouble',
+    name: 'Ein Gespür für Ärger',
+    description: 'Irgend etwas im Schiff gerät schon bei dem Gedanken an Kampf in Aufregung. Es sucht den Kosmos ständig nach Gelegenheiten ab, Stunk zu machen. Das Schiff erhält +5 auf Ortung. Aufgrund der zahlreichen Schlachten reduziert sich die Panzerung um 1. Hin und wieder findet sich die Mannschaft in Schlachten wieder, denen sie lieber aus dem Weg gegangen wäre.',
+    bonuses: {
+      detection: 5,
+      armor: -1,
+      situational: ['Zieht Kämpfe an - ungewollte Konflikte möglich']
+    }
+  },
+  blasphemousTendencies: {
+    id: 'blasphemousTendencies',
+    name: 'Blasphemische Tendenzen',
+    description: 'Irgendein unidentifizierbarer Aspekt des Geistes dieses Schiffs schwingt auf der Welle des Immateriums. Das Schiff gleitet beinahe mühelos durch den Warp. Alle Navigation-Würfe für Warpreisen +15, aber -5 auf alle WK-Würfe der Mannschaft.',
+    bonuses: {
+      skills: ['+15 auf Navigation (Warp)', '-5 auf Willenskraft'],
+      situational: ['Warp-affin - seltsame Phänomene möglich']
+    }
+  },
+  martialHubris: {
+    id: 'martialHubris',
+    name: 'Kriegerische Hybris',
+    description: 'Das Schiff hat eine glorreiche Vergangenheit voller Kriege und erfolgreicher Kampfeinsätze. Es lechzt ständig nach Kampf und ist nicht bereit, klein beizugeben. +5 auf alle BF-Würfe mit Schiffswaffen, aber -15 auf Pilot-Würfe beim Rückzug.',
+    bonuses: {
+      skills: ['+5 auf BF (Schiffswaffen)', '-15 auf Pilot beim Rückzug'],
+      situational: ['Kampfgierig - will nicht fliehen']
+    }
+  },
+  rebellious: {
+    id: 'rebellious',
+    name: 'Rebellisch',
+    description: 'Dieses Schiff unterwirft sich nicht bereitwillig fremder Autorität. Der SL kann einmal pro Spielabend eine Komponente energielos werden lassen. Bei kritischen Treffern: W10, bei 8+ wird der kritische Treffer ignoriert.',
+    bonuses: {
+      shipTraits: ['Störrisch - eine Komponente kann pro Session ausfallen', '20% Chance kritische Treffer zu ignorieren']
+    }
+  },
+  stoic: {
+    id: 'stoic',
+    name: 'Stoisch',
+    description: 'Das Schiff verhält sich wie ein gutmütiges Lasttier: verlässlich, aber ziemlich behäbig. Zugewinn an Profitfaktor durch Projekte um 1 reduziert. Wenn eine Komponente beschädigt wird: W10, bei 7+ wird der Schaden ignoriert.',
+    bonuses: {
+      projectBonuses: ['Stoisch: -1 Profitfaktor bei Projektabschluss'],
+      situational: ['30% Chance Komponentenschaden zu ignorieren']
+    }
+  },
+  skittish: {
+    id: 'skittish',
+    name: 'Nervös',
+    description: 'Das Schiff fürchtet den Kampf. Geschwindigkeit -1 im Kampf. Außerhalb des Kampfes laufen die Maschinen leicht und zuverlässig: Reisezeit für Langstrecken um 1W5 Wochen reduziert (Minimum 1).',
+    bonuses: {
+      shipTraits: ['Nervös: Geschwindigkeit -1 nur im Kampf', 'Nervös: Schnellere Reisen außerhalb von Kämpfen']
+    }
+  },
+  wrathful: {
+    id: 'wrathful',
+    name: 'Zornig',
+    description: 'Der Maschinengeist brodelt ständig vor Zorn. Im Kampf gerät er in Berserkerrausch. Im Kampf: Geschwindigkeit +1 und Manövrierfähigkeit +4. Außerhalb: Geschwindigkeit -1, Manövrierfähigkeit -5 und Ortung -5.',
+    bonuses: {
+      shipTraits: ['Zornig: Im Kampf: Geschw. +1, Manöver +4', 'Zornig: Außerhalb Kampf: Geschw. -1, Manöver -5, Ortung -5']
+    }
+  },
+  resolute: {
+    id: 'resolute',
+    name: 'Resolut',
+    description: 'Es gibt nur wenig im Universum, das dieses Schiff zu erschüttern vermag. Es wird langsam, aber unerbittlich gegen Gegner vorrücken. Geschwindigkeit -1, aber Hüllenintegrität +3 und +10 auf alle Reparaturwürfe.',
+    bonuses: {
+      speed: -1,
+      hullIntegrity: 3,
+      skills: ['+10 auf Tech-Gebrauch (Reparaturen)']
+    }
+  },
+  adventurous: {
+    id: 'adventurous',
+    name: 'Abenteuerlustig',
+    description: 'Das Schiff drängt darauf, neue Horizonte zu erforschen. Während eines Projekts erhält das Raumschiff Ortung +10. Wenn nicht im Rahmen eines Projektes unterwegs, erleidet es Ortung -10.',
+    bonuses: {
+      situational: ['Ortung +10 während Projekten', 'Ortung -10 außerhalb von Projekten']
+    }
+  },
+  ancientAndWise: {
+    id: 'ancientAndWise',
+    name: 'Alt und weise',
+    description: 'Das Schiff stammt aus einem längst vergessenen Zeitalter. Seinen Rumpf haben die Jahrhunderte geschwächt, doch es verschmilzt regelrecht mit einem kompetenten Kapitän. Hüllenintegrität -4, aber +10 auf alle Manövrieraktionen.',
+    bonuses: {
+      hullIntegrity: -4,
+      skills: ['+10 auf Pilot (Raumschiff)']
+    }
+  }
+}

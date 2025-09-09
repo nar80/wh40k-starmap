@@ -146,6 +146,77 @@
                     </div>
                   </div>
 
+                  <!-- Schiffsvergangenheit und Eigenheiten -->
+                  <div class="q-mt-md">
+                    <div class="row q-gutter-sm">
+                      <div class="col">
+                        <q-select
+                          v-model="ship.history"
+                          :options="historyOptions"
+                          option-label="name"
+                          option-value="id"
+                          label="Schiffsvergangenheit"
+                          dark
+                          filled
+                          dense
+                          @update:model-value="saveShip"
+                        >
+                          <template v-slot:option="scope">
+                            <q-item v-bind="scope.itemProps">
+                              <q-item-section>
+                                <q-item-label>{{ scope.opt.name }}</q-item-label>
+                                <q-item-label caption lines="2">{{ scope.opt.description.substring(0, 100) }}...</q-item-label>
+                              </q-item-section>
+                            </q-item>
+                          </template>
+                        </q-select>
+                      </div>
+                      <div class="col">
+                        <q-select
+                          v-model="ship.quirk"
+                          :options="quirkOptions"
+                          option-label="name"
+                          option-value="id"
+                          label="Eigenheit"
+                          dark
+                          filled
+                          dense
+                          @update:model-value="saveShip"
+                        >
+                          <template v-slot:option="scope">
+                            <q-item v-bind="scope.itemProps">
+                              <q-item-section>
+                                <q-item-label>{{ scope.opt.name }}</q-item-label>
+                                <q-item-label caption lines="2">{{ scope.opt.description.substring(0, 100) }}...</q-item-label>
+                              </q-item-section>
+                            </q-item>
+                          </template>
+                        </q-select>
+                      </div>
+                    </div>
+
+                    <!-- Beschreibungen anzeigen wenn ausgewählt -->
+                    <div v-if="ship.history" class="q-mt-sm">
+                      <q-banner dense class="bg-blue-grey-9 text-white">
+                        <template v-slot:avatar>
+                          <q-icon name="history" color="amber" />
+                        </template>
+                        <div class="text-subtitle2">{{ ship.history.name }}</div>
+                        <div class="text-caption">{{ ship.history.description }}</div>
+                      </q-banner>
+                    </div>
+                    
+                    <div v-if="ship.quirk" class="q-mt-sm">
+                      <q-banner dense class="bg-blue-grey-9 text-white">
+                        <template v-slot:avatar>
+                          <q-icon name="psychology" color="amber" />
+                        </template>
+                        <div class="text-subtitle2">{{ ship.quirk.name }}</div>
+                        <div class="text-caption">{{ ship.quirk.description }}</div>
+                      </q-banner>
+                    </div>
+                  </div>
+
                   <div class="q-mt-md">
                     <div class="text-subtitle2 text-amber q-mb-sm">Grundwerte</div>
                     <div class="row q-gutter-xs">
@@ -172,6 +243,9 @@
                       </q-chip>
                       <q-chip color="pink" text-color="white" icon="mood">
                         Moral: {{ (shipStats.morale || 0) > 0 ? '+' : '' }}{{ shipStats.morale || 0 }}
+                      </q-chip>
+                      <q-chip v-if="shipStats.crew" color="deep-purple" text-color="white" icon="groups">
+                        Mannschaft: {{ shipStats.crew > 0 ? '+' : '' }}{{ shipStats.crew }}%
                       </q-chip>
                     </div>
                   </div>
@@ -1000,7 +1074,9 @@ import {
   supplementalComponents,
   archaeotech,
   getComponentsForShipType,
-  calculateShipStats
+  calculateShipStats,
+  shipHistories,
+  shipQuirks
 } from '../data/shipComponents'
 import { useGameStore } from '../stores/gameStore'
 
@@ -1024,6 +1100,25 @@ const selectedComponent = ref(null)
 const showAddCrewDialog = ref(false)
 const selectedWeaponType = ref(null) // Filter für Waffentyp
 const fileInput = ref(null) // Referenz für File Input
+
+// Schiffsvergangenheit und Eigenheiten Optionen
+const historyOptions = computed(() => {
+  return Object.values(shipHistories).map(h => ({
+    id: h.id,
+    name: h.name,
+    description: h.description,
+    bonuses: h.bonuses
+  }))
+})
+
+const quirkOptions = computed(() => {
+  return Object.values(shipQuirks).map(q => ({
+    id: q.id,
+    name: q.name,
+    description: q.description,
+    bonuses: q.bonuses
+  }))
+})
 
 // New crew member form
 const newCrewMember = reactive({
@@ -1089,6 +1184,8 @@ const ship = reactive({
   hullClass: hullTypes.swordClass,
   maxSpace: hullTypes.swordClass.space,
   maxPower: 0, // Will be calculated from plasmaDrive
+  history: null, // Schiffsvergangenheit
+  quirk: null, // Eigenheit
   components: {
     plasmaDrive: null,
     warpDrive: null,
@@ -1198,6 +1295,70 @@ const shipStats = computed(() => {
   stats.situationalBonuses = stats.situationalBonuses || []
   stats.shipTraits = stats.shipTraits || []
   stats.skillBonusesList = stats.skillBonusesList || []
+  
+  // Füge Effekte von Schiffsvergangenheit hinzu
+  if (ship.history && ship.history.bonuses) {
+    const bonuses = ship.history.bonuses
+    
+    // Direkte Stat-Modifikationen
+    if (bonuses.detection) stats.detection += bonuses.detection
+    if (bonuses.armor) stats.armor += bonuses.armor
+    if (bonuses.speed) stats.speed += bonuses.speed
+    if (bonuses.maneuverability) stats.maneuverability += bonuses.maneuverability
+    if (bonuses.hullIntegrity) stats.hullIntegrity += bonuses.hullIntegrity
+    if (bonuses.power) stats.power += bonuses.power
+    if (bonuses.morale) stats.morale += bonuses.morale
+    if (bonuses.crew) stats.crew = (stats.crew || 0) + bonuses.crew
+    
+    // Skills und andere Boni
+    if (bonuses.skills) {
+      stats.skillBonusesList.push(...bonuses.skills.map(s => `${s} (${ship.history.name})`))
+    }
+    if (bonuses.situational) {
+      stats.situationalBonuses.push(...bonuses.situational)
+    }
+    if (bonuses.projectBonuses) {
+      stats.projectBonuses.push(...bonuses.projectBonuses)
+    }
+    if (bonuses.risks) {
+      stats.risks.push(...bonuses.risks)
+    }
+    if (bonuses.shipTraits) {
+      stats.shipTraits.push(...bonuses.shipTraits)
+    }
+  }
+  
+  // Füge Effekte von Eigenheit hinzu
+  if (ship.quirk && ship.quirk.bonuses) {
+    const bonuses = ship.quirk.bonuses
+    
+    // Direkte Stat-Modifikationen
+    if (bonuses.detection) stats.detection += bonuses.detection
+    if (bonuses.armor) stats.armor += bonuses.armor
+    if (bonuses.speed) stats.speed += bonuses.speed
+    if (bonuses.maneuverability) stats.maneuverability += bonuses.maneuverability
+    if (bonuses.hullIntegrity) stats.hullIntegrity += bonuses.hullIntegrity
+    if (bonuses.power) stats.power += bonuses.power
+    if (bonuses.morale) stats.morale += bonuses.morale
+    if (bonuses.crew) stats.crew = (stats.crew || 0) + bonuses.crew
+    
+    // Skills und andere Boni
+    if (bonuses.skills) {
+      stats.skillBonusesList.push(...bonuses.skills.map(s => `${s} (${ship.quirk.name})`))
+    }
+    if (bonuses.situational) {
+      stats.situationalBonuses.push(...bonuses.situational)
+    }
+    if (bonuses.projectBonuses) {
+      stats.projectBonuses.push(...bonuses.projectBonuses)
+    }
+    if (bonuses.risks) {
+      stats.risks.push(...bonuses.risks)
+    }
+    if (bonuses.shipTraits) {
+      stats.shipTraits.push(...bonuses.shipTraits)
+    }
+  }
   
   // Force Vue reactivity for risks array - WICHTIGER FIX
   if (stats.risks && stats.risks.length > 0) {
@@ -1735,6 +1896,8 @@ const saveShip = () => {
     name: ship.name,
     hullId: ship.hullId,
     hull: ship.hullClass, // Speichere die aktuelle Hull-Klasse
+    history: ship.history, // Speichere Schiffsvergangenheit
+    quirk: ship.quirk, // Speichere Eigenheit
     components: ship.components,
     crew: ship.crew, // Speichere Crew-Daten
     additionalCrew: ship.additionalCrew, // Speichere zusätzliche Crew
@@ -1751,6 +1914,7 @@ const saveShip = () => {
       turretRating: shipStats.value.turretRating,
       shields: shipStats.value.shields,
       morale: shipStats.value.morale,
+      crew: shipStats.value.crew || 0,
       usedSpace: shipStats.value.usedSpace,
       usedPower: shipStats.value.usedPower,
       maxSpace: ship.maxSpace,
@@ -1786,6 +1950,10 @@ const loadShip = () => {
       } else if (ship.hullId && hullTypes[ship.hullId]) {
         ship.hullClass = hullTypes[ship.hullId]
       }
+      
+      // Lade Schiffsvergangenheit und Eigenheit
+      ship.history = saved.history || null
+      ship.quirk = saved.quirk || null
       
       ship.components = saved.components || {
         plasmaDrive: null,

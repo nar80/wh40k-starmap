@@ -264,9 +264,9 @@ const maxHullPoints = computed(() => {
 })
 
 const maxCrewStrength = computed(() => {
-  // Basis ist immer 100%, könnte durch Komponenten modifiziert werden
+  // Basis ist 100%, wird durch Crew-Modifikatoren beeinflusst (z.B. Todeskult -8)
   if (!shipStats.value) return 100
-  const bonus = shipStats.value.crewBonus || 0 // Falls es Crew-Boni gibt
+  const bonus = shipStats.value.crew || 0
   return 100 + bonus
 })
 
@@ -283,6 +283,25 @@ const shipStatus = reactive({
   hullPoints: 30,
   crewStrength: 100,
   morale: 100
+})
+
+// Passe aktuelle Werte an, wenn Maximalwerte sich ändern
+watch(maxCrewStrength, (newMax) => {
+  if (shipStatus.crewStrength > newMax) {
+    shipStatus.crewStrength = newMax
+  }
+})
+
+watch(maxMorale, (newMax) => {
+  if (shipStatus.morale > newMax) {
+    shipStatus.morale = newMax
+  }
+})
+
+watch(maxHullPoints, (newMax) => {
+  if (shipStatus.hullPoints > newMax) {
+    shipStatus.hullPoints = newMax
+  }
 })
 
 // Load saved status from localStorage or gameStore
