@@ -35,6 +35,7 @@
             <div class="text-subtitle2 text-amber">Objekte im System</div>
             <q-space />
             <q-btn
+              v-if="!gameStore.isPlayerMode"
               flat
               round
               dense
@@ -62,7 +63,7 @@
                 <q-item-label class="text-caption">{{ obj.name }}</q-item-label>
                 <q-item-label caption class="text-grey-6">{{ getTypeDisplayName(obj.data?.type || obj.type || 'Unbekannt') }}</q-item-label>
               </q-item-section>
-              <q-item-section side>
+              <q-item-section side v-if="!gameStore.isPlayerMode">
                 <q-btn
                   flat
                   round
@@ -269,9 +270,10 @@
           align="left"
           narrow-indicator
         >
-          <q-tab name="basic" label="Basis" />
-          <q-tab name="text" label="Texte" />
-          <q-tab name="details" label="Details" />
+          <q-tab name="basic" label="Basis" v-if="!gameStore.isPlayerMode" />
+          <q-tab name="text" label="Texte" v-if="!gameStore.isPlayerMode" />
+          <q-tab name="details" label="Details" v-if="!gameStore.isPlayerMode" />
+          <q-tab name="notes" label="Notizen" />
         </q-tabs>
         
         <q-separator />
@@ -549,11 +551,26 @@
           </q-tab-panel>
           
           <!-- Details Tab -->
-          <q-tab-panel name="details">
+          <q-tab-panel name="details" v-if="!gameStore.isPlayerMode">
             <!-- Platzhalter für zukünftige Detail-Optionen -->
             <div class="text-grey-5">
               Hier können später weitere Details hinzugefügt werden.
             </div>
+          </q-tab-panel>
+          
+          <!-- Notizen Tab -->
+          <q-tab-panel name="notes">
+            <q-input
+              v-model="editForm.notes"
+              :label="gameStore.isPlayerMode ? 'Meine Notizen' : 'Spielleiter-Notizen'"
+              type="textarea"
+              rows="8"
+              dark
+              outlined
+              dense
+              class="q-mb-md"
+              :hint="gameStore.isPlayerMode ? 'Persönliche Notizen zu diesem Objekt' : 'Private Notizen für den Spielleiter'"
+            />
           </q-tab-panel>
         </q-tab-panels>
         
@@ -614,7 +631,8 @@ const editForm = reactive({
     gravity: 'Standard',
     weather: 'Unknown',
     specialConditions: []
-  }
+  },
+  notes: ''  // Notizen (Spielleiter oder Spieler)
 })
 
 let app = null
@@ -1127,11 +1145,12 @@ const editObject = (obj) => {
       gravity: 'Standard',
       weather: 'Unknown',
       specialConditions: []
-    }
+    },
+    notes: obj.data?.notes || ''
   })
   
-  // Reset to basic tab when opening
-  editTab.value = 'basic'
+  // Reset to appropriate tab when opening
+  editTab.value = gameStore.isPlayerMode ? 'notes' : 'basic'
   
   showEditDialog.value = true
 }
@@ -1231,7 +1250,8 @@ const saveObject = () => {
       hasColony: editForm.hasColony,
       pointsOfInterest: editForm.pointsOfInterest.length > 0 ? editForm.pointsOfInterest : undefined,
       resources: editForm.resources,
-      environment: editForm.environment
+      environment: editForm.environment,
+      notes: editForm.notes || undefined
     }
     
     // Add population if present
@@ -1278,7 +1298,8 @@ const saveObject = () => {
       hasColony: editForm.hasColony,
       pointsOfInterest: editForm.pointsOfInterest.length > 0 ? editForm.pointsOfInterest : undefined,
       resources: editForm.resources,
-      environment: editForm.environment
+      environment: editForm.environment,
+      notes: editForm.notes || undefined
     }
     
     // Füge Bevölkerung hinzu wenn vorhanden
