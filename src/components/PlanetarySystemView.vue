@@ -1326,13 +1326,19 @@ watch(show, (newVal) => {
     selectedPlanet.value = null
     selectedStar.value = null
     setTimeout(() => initPlanetaryView(), 100)
-  } else if (!newVal && app) {
-    // Clean up when closing
+  } else if (!newVal) {
+    // Clean up when closing - ALWAYS stop animation
     if (animationId) {
       cancelAnimationFrame(animationId)
+      animationId = null
     }
-    app.destroy(true)
-    app = null
+    // Clear animated planets array
+    animatedPlanets = []
+    
+    if (app) {
+      app.destroy(true)
+      app = null
+    }
     // Reset selections when closing
     selectedPlanet.value = null
     selectedStar.value = null
@@ -1754,7 +1760,14 @@ const getDangerColor = (danger) => {
 let animatedPlanets = []
 
 const animate = () => {
-  if (!app || !show.value) return
+  // Stop animation if dialog is closed or app destroyed
+  if (!app || !show.value) {
+    if (animationId) {
+      cancelAnimationFrame(animationId)
+      animationId = null
+    }
+    return
+  }
   
   // Use the stored animated planets
   animatedPlanets.forEach(planet => {

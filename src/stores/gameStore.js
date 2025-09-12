@@ -97,13 +97,23 @@ export const useGameStore = defineStore('game', () => {
   const remoteDataUrl = ref(localStorage.getItem('remoteDataUrl') || '')
   const lastSyncTime = ref(localStorage.getItem('lastSyncTime') || null)
   
-  // Auto-save game state to localStorage
+  // Auto-save game state to localStorage with debouncing
+  let saveTimeout = null
   watch(playerShip, (newVal) => {
-    localStorage.setItem('playerShip', JSON.stringify(newVal))
+    // Debounce saves to reduce CPU load
+    clearTimeout(saveTimeout)
+    saveTimeout = setTimeout(() => {
+      localStorage.setItem('playerShip', JSON.stringify(newVal))
+    }, 1000) // Save after 1 second of no changes
   }, { deep: true })
   
+  let discoveredSaveTimeout = null
   watch(discoveredSystems, (newVal) => {
-    localStorage.setItem('discoveredSystems', JSON.stringify(newVal))
+    // Debounce saves to reduce CPU load
+    clearTimeout(discoveredSaveTimeout)
+    discoveredSaveTimeout = setTimeout(() => {
+      localStorage.setItem('discoveredSystems', JSON.stringify(newVal))
+    }, 1000) // Save after 1 second of no changes
   }, { deep: true })
   
   // System importance (0-3 stars)

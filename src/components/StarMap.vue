@@ -143,7 +143,19 @@ onMounted(async () => {
     width: mapContainer.value.clientWidth,
     height: mapContainer.value.clientHeight,
     backgroundAlpha: 0,
-    antialias: true
+    antialias: true,
+    // Automatically pause rendering when tab is not visible
+    autoStart: true,
+    sharedTicker: true
+  })
+  
+  // Pause/resume PIXI ticker based on tab visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      app.ticker.stop()
+    } else {
+      app.ticker.start()
+    }
   })
   
   mapContainer.value.appendChild(app.canvas)
@@ -403,6 +415,9 @@ const getStarColor = (starType, isDiscovered) => {
 }
 
 const drawSystems = () => {
+  // Batch all graphics operations for better performance
+  const systemsBatch = new PIXI.Container()
+  
   gameStore.systems.forEach(system => {
     const isDiscovered = gameStore.isSystemDiscovered(system.id)
     
@@ -589,9 +604,12 @@ const drawSystems = () => {
       }
     })
     
-    viewport.addChild(systemContainer)
+    systemsBatch.addChild(systemContainer)
     systemSprites.set(system.id, systemContainer)
   })
+  
+  // Add all systems at once for better performance
+  viewport.addChild(systemsBatch)
 }
 
 const drawShip = async () => {
@@ -777,20 +795,74 @@ const updateFogOfWar = () => {
 }
 
 const setupInteraction = () => {
-  gameStore.$subscribe(async () => {
-    await drawShip()
-    updateFogOfWar()
-    drawTargetIndicator()  // Always draw last to be on top
+  // Track if tab is visible
+  let isTabVisible = !document.hidden
+  
+  // Only subscribe to specific changes that actually need redraws
+  let isUpdating = false
+  let lastShipSystem = gameStore.playerShip.currentSystem
+  let lastSelectedSystem = gameStore.selectedSystem?.id
+  
+  // Pause updates when tab is not visible
+  document.addEventListener('visibilitychange', () => {
+    isTabVisible = !document.hidden
+    
+    // When tab becomes visible again, do a single update if needed
+    if (isTabVisible) {
+      const shipMoved = gameStore.playerShip.currentSystem !== lastShipSystem
+      const selectionChanged = gameStore.selectedSystem?.id !== lastSelectedSystem
+      
+      if (shipMoved) {
+        lastShipSystem = gameStore.playerShip.currentSystem
+        drawShip()
+      }
+      if (selectionChanged) {
+        lastSelectedSystem = gameStore.selectedSystem?.id
+        drawTargetIndicator()
+      }
+    }
+  })
+  
+  gameStore.$subscribe(async (mutation, state) => {
+    // Skip all updates if tab is not visible
+    if (!isTabVisible) return
+    
+    // Prevent multiple simultaneous updates
+    if (isUpdating) return
+    
+    // Only redraw ship if it actually moved
+    const shipMoved = state.playerShip.currentSystem !== lastShipSystem
+    if (shipMoved) {
+      isUpdating = true
+      lastShipSystem = state.playerShip.currentSystem
+      await drawShip()
+      isUpdating = false
+    }
+    
+    // Only redraw target if selection changed
+    const selectionChanged = state.selectedSystem?.id !== lastSelectedSystem
+    if (selectionChanged) {
+      lastSelectedSystem = state.selectedSystem?.id
+      drawTargetIndicator()
+    }
+    
+    // Fog of war updates are handled separately via event
   })
   
   // Listen for fog of war toggle
   window.addEventListener('fogOfWarToggled', () => {
-    updateFogOfWar()
+    if (isTabVisible) {  // Only update if tab is visible
+      updateFogOfWar()
+    }
   })
 }
 
 onUnmounted(() => {
+  // Clean up visibility change listener
+  document.removeEventListener('visibilitychange', () => {})
+  
   if (app) {
+    app.ticker.stop()
     app.destroy(true)
   }
   
@@ -799,6 +871,14 @@ onUnmounted(() => {
     document.removeEventListener('contextmenu', preventContextMenu, true)
     window.removeEventListener('contextmenu', preventContextMenu, true)
   }
+  
+  // Clear all stored references
+  systemSprites.clear()
+  laneGraphics = null
+  shipSprite = null
+  targetIndicator = null
+  fogOverlay = null
+  backgroundSprite = null
 })
 
 // Handle system saved from editor

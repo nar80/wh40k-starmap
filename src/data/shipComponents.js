@@ -458,9 +458,19 @@ export const essentialComponents = {
       id: 'jovianClass1',
       name: 'Antrieb Klasse 1 (Jovian-Schema)',
       type: 'plasmaDrive',
+      power: 35,
+      space: 8,
+      sp: 0,
+      shipTypes: ['transport'],
+      description: 'Standard-Plasmaantrieb für Transportschiffe.'
+    },
+    {
+      id: 'drehbankClass1',
+      name: 'Antrieb Klasse 1 (Drehbank-Schema)',
+      type: 'plasmaDrive',
       power: 40,
       space: 12,
-      sp: 0,
+      sp: 1,
       shipTypes: ['transport'],
       description: 'Standard-Plasmaantrieb für Transportschiffe.'
     },
@@ -685,8 +695,8 @@ export const essentialComponents = {
       name: 'Gestaffelter Deflektorschild',
       type: 'voidShield',
       power: 7,
-      space: 1,
-      sp: 1,
+      space: 2,
+      sp: 0,
       shipTypes: ['cruiser'],
       shields: 2,
       description: 'Fortschrittlicher Deflektorschild mit zwei Schichten.'
@@ -835,7 +845,7 @@ export const essentialComponents = {
       type: 'bridge',
       power: 2,  // Korrigiert für Fregatten
       space: 2,
-      sp: 1,
+      sp: 0,
       shipTypes: ['raider', 'frigate'],
       bonuses: {
         skills: [
@@ -853,7 +863,7 @@ export const essentialComponents = {
       type: 'bridge',
       power: 3,  // Korrigiert für Kreuzer
       space: 2,
-      sp: 1,
+      sp: 0,
       shipTypes: ['lightCruiser', 'cruiser'],
       bonuses: {
         skills: [
@@ -871,7 +881,7 @@ export const essentialComponents = {
       type: 'bridge',
       power: 4,
       space: 3,
-      sp: 2,
+      sp: 0,
       shipTypes: ['lightCruiser', 'cruiser'],
       bonuses: {
         skills: [
@@ -960,7 +970,7 @@ export const essentialComponents = {
       name: 'Lebenserhaltungssystem Typ 1.r',
       type: 'lifeSustainer',
       power: 3,
-      space: 2,
+      space: 1,
       sp: 0,
       shipTypes: ['transport', 'raider', 'frigate'],
       bonuses: {
@@ -973,7 +983,7 @@ export const essentialComponents = {
       name: 'Lebenserhaltungssystem Typ 1.r (Schwer)',
       type: 'lifeSustainer',
       power: 4,
-      space: 3,
+      space: 2,
       sp: 0,
       shipTypes: ['lightCruiser', 'cruiser'],
         bonuses: {
@@ -987,7 +997,7 @@ export const essentialComponents = {
       type: 'lifeSustainer',
       power: 4,
       space: 2,
-      sp: 1,
+      sp: 0,
       shipTypes: ['transport', 'raider', 'frigate'],
       description:' Dieses Lebenserhaltungssystem folgt dem STK und ist im Calixis-Sektor weitverbreitet'
     },
@@ -1025,7 +1035,7 @@ export const essentialComponents = {
       type: 'lifeSustainer',
       power: 5,
       space: 3,
-      sp: 1,
+      sp: 0,
       shipTypes: ['lightCruiser', 'cruiser'],
       description:' Dieses Lebenserhaltungssystem folgt dem STK und ist im Calixis-Sektor weitverbreitet'
     }
@@ -1065,7 +1075,7 @@ export const essentialComponents = {
       type: 'crewQuarters',
       power: 1,
       space: 3,
-      sp: 1,
+      sp: 0,
       shipTypes: ['transport', 'raider', 'frigate'],
       description:'Herkömmliche Quartiere für die Mannschaft eines Raumschiffs auf langen Reisen.'
     },
@@ -1075,7 +1085,7 @@ export const essentialComponents = {
       type: 'crewQuarters',
       power: 2,
       space: 4,
-      sp: 1,
+      sp: 0,
       shipTypes: ['lightCruiser', 'cruiser'],
       description:'Herkömmliche Quartiere für die Mannschaft eines Raumschiffs auf langen Reisen.'
     },
@@ -1205,9 +1215,9 @@ export const essentialComponents = {
       id: 'longRange',
       name: 'Langstreckensensorsystem',
       type: 'augurArray',
-      power: 6,
-      space: 1,
-      sp: 2,
+      power: 7,
+      space: 0,
+      sp: 1,
       shipTypes: ['all'],
       bonuses: {
         stats: { detection: 10 },  // Auge des Omnissiah
