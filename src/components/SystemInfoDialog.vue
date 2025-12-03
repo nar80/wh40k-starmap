@@ -330,7 +330,7 @@ const props = defineProps({
   systemId: String
 })
 
-const emit = defineEmits(['update:modelValue', 'import-system-details'])
+const emit = defineEmits(['update:modelValue', 'import-system-details', 'planets-updated'])
 
 const gameStore = useGameStore()
 const notes = ref('')
@@ -524,6 +524,13 @@ watch(() => props.systemId, (newId) => {
     activeTab.value = 'general'
   }
 }, { immediate: true })
+
+// Emit event when planetary view is closed (to update explored indicators on map)
+watch(showPlanetarySystem, (newVal, oldVal) => {
+  if (oldVal === true && newVal === false) {
+    emit('planets-updated')
+  }
+})
 
 const onHide = () => {
   emit('update:modelValue', false)

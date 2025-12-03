@@ -320,7 +320,28 @@ export const useGameStore = defineStore('game', () => {
       saveSystemPlanetsToLocalStorage()
     }
   }
-  
+
+  // Prüft ob alle Planeten eines Systems erkundet wurden
+  const isSystemFullyExplored = (systemId) => {
+    const planets = systemPlanets.value[systemId]
+    if (!planets || planets.length === 0) return false
+    return planets.every(planet => planet.explored === true)
+  }
+
+  // Setzt den Erkundungsstatus eines Planeten
+  const setPlanetExplored = (systemId, planetName, explored) => {
+    const planets = systemPlanets.value[systemId]
+    if (!planets) return
+    const planetIndex = planets.findIndex(p => p.name === planetName)
+    if (planetIndex !== -1) {
+      // Create new array to trigger reactivity
+      const updatedPlanets = [...planets]
+      updatedPlanets[planetIndex] = { ...updatedPlanets[planetIndex], explored }
+      systemPlanets.value[systemId] = updatedPlanets
+      saveSystemPlanetsToLocalStorage()
+    }
+  }
+
   const saveSystemPlanetsToLocalStorage = () => {
     console.log('Saving systemPlanets to localStorage:', Object.keys(systemPlanets.value).length, 'systems')
     localStorage.setItem('systemPlanets', JSON.stringify(systemPlanets.value))
@@ -858,6 +879,8 @@ export const useGameStore = defineStore('game', () => {
     setSystemPlanets,
     getSystemPlanets,
     updateSystemPlanet,
+    isSystemFullyExplored,
+    setPlanetExplored,
     importSystemDetails,
     setStartSystem,
     getStartSystem,

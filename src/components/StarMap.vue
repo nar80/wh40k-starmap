@@ -18,9 +18,10 @@
       </q-chip>
     </div>
     
-    <SystemInfoDialog 
-      v-model="showSystemDialog" 
+    <SystemInfoDialog
+      v-model="showSystemDialog"
       :system-id="selectedSystemId"
+      @planets-updated="onPlanetsUpdated"
     />
     <PlanetarySystemView
       v-model="showPlanetaryView"
@@ -466,7 +467,31 @@ const drawSystems = () => {
       stars.y = -40  // Further from larger system
       systemContainer.addChild(stars)
     }
-    
+
+    // Add "fully explored" indicator if all planets are explored
+    if (gameStore.isSystemFullyExplored(system.id) && isDiscovered) {
+      const exploredMarker = new PIXI.Graphics()
+      exploredMarker.setStrokeStyle({ width: 2, color: 0x00ff88, alpha: 0.9 })
+      exploredMarker.circle(0, 0, 28)
+      exploredMarker.stroke()
+      systemContainer.addChild(exploredMarker)
+
+      // Add checkmark icon
+      const checkmark = new PIXI.Text({
+        text: '✓',
+        style: {
+          fontFamily: 'Arial',
+          fontSize: 14,
+          fill: 0x00ff88,
+          fontWeight: 'bold'
+        }
+      })
+      checkmark.anchor.set(0.5)
+      checkmark.x = 25
+      checkmark.y = -25
+      systemContainer.addChild(checkmark)
+    }
+
     // Mark start system with a special indicator
     if (gameStore.getStartSystem() === system.id && gameStore.editMode) {
       const startMarker = new PIXI.Graphics()
@@ -893,6 +918,11 @@ const onSystemDeleted = (systemId) => {
   redrawMap()
 }
 
+// Called when planets are updated in SystemInfoDialog
+const onPlanetsUpdated = () => {
+  redrawMap()
+}
+
 // Redraw the entire map
 const redrawMap = async () => {
   // Clear ALL graphics from viewport except background
@@ -924,11 +954,20 @@ watch(() => gameStore.editMode, (editMode) => {
   if (app && app.stage) {
     app.stage.cursor = editMode ? 'crosshair' : 'default'
   }
-  
+
   // Update system cursors
   systemSprites.forEach((sprite) => {
     sprite.cursor = editMode ? 'move' : 'pointer'
   })
+})
+
+// Redraw systems when planetary view is closed (to update explored indicators)
+watch(showPlanetaryView, async (newVal, oldVal) => {
+  if (oldVal === true && newVal === false) {
+    // Dialog was closed - wait a tick for data to sync, then redraw
+    await nextTick()
+    await redrawMap()
+  }
 })
 
 // Starlane click handler

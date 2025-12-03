@@ -48,8 +48,8 @@
             </q-btn>
           </div>
           <q-list dense separator dark>
-            <q-item 
-              v-for="obj in systemObjects" 
+            <q-item
+              v-for="obj in systemObjects"
               :key="obj.id"
               clickable
               @click="selectObject(obj)"
@@ -63,7 +63,19 @@
                 <q-item-label class="text-caption">{{ obj.name }}</q-item-label>
                 <q-item-label caption class="text-grey-6">{{ getTypeDisplayName(obj.data?.type || obj.type || 'Unbekannt') }}</q-item-label>
               </q-item-section>
-              <q-item-section side v-if="!gameStore.isPlayerMode">
+              <q-item-section side v-if="obj.id !== 'star'">
+                <q-checkbox
+                  :model-value="obj.data?.explored || false"
+                  @update:model-value="toggleExplored(obj)"
+                  dense
+                  size="sm"
+                  color="green"
+                  @click.stop
+                >
+                  <q-tooltip>{{ obj.data?.explored ? 'Erkundet' : 'Nicht erkundet' }}</q-tooltip>
+                </q-checkbox>
+              </q-item-section>
+              <q-item-section side v-if="!gameStore.isPlayerMode && obj.id !== 'star'">
                 <q-btn
                   flat
                   round
@@ -1102,6 +1114,17 @@ const selectObject = (obj) => {
   }
 }
 
+// Toggle explored status
+const toggleExplored = (obj) => {
+  if (obj.id === 'star') return
+  const newStatus = !obj.data?.explored
+  gameStore.setPlanetExplored(props.systemId, obj.name, newStatus)
+  // Update local data to reflect change
+  if (obj.data) {
+    obj.data.explored = newStatus
+  }
+}
+
 // Edit-Funktionen
 const editObject = (obj) => {
   editingObject.value = obj
@@ -1496,7 +1519,11 @@ const initPlanetaryView = async () => {
   
   // Clear previous animated planets
   animatedPlanets = []
-  
+
+  // Container für alle Namen (außerhalb der rotierenden Container)
+  const labelsContainer = new PIXI.Container()
+  viewport.addChild(labelsContainer)
+
   // Draw orbits and objects
   systemData.planets.forEach((planet, index) => {
     // Bestimme Kategorie
@@ -1581,21 +1608,23 @@ const initPlanetaryView = async () => {
       selectedPlanet.value = planet
     })
     
-    // Add planet name
+    // Add planet name (außerhalb des rotierenden Containers)
     const text = new PIXI.Text({
       text: planet.name,
       style: {
         fontFamily: 'Arial',
         fontSize: 10,
         fill: 0xffffff
-      }
+      },
+      roundPixels: true
     })
-    text.anchor.set(0.5)
-    text.x = planet.orbitRadius
-    text.y = planet.size + 15
-    
+    text.anchor.set(0.5, 0) // Oben zentriert
+    labelsContainer.addChild(text)
+
+    // Speichere Referenz zum Text für Animation
+    planet.label = text
+
     planetContainer.addChild(planetSprite)
-    planetContainer.addChild(text)
     
     // Draw moons if they exist
     if (planet.moons) {
@@ -1789,14 +1818,31 @@ const animate = () => {
     }
     return
   }
-  
+
   // Use the stored animated planets
   animatedPlanets.forEach(planet => {
     if (planet.container) {
       planet.container.rotation += planet.container.orbitSpeed
+
+      // Update label position (immer unter dem Planeten, nicht rotierend)
+      if (planet.label) {
+        // Berechne die aktuelle Position des Planeten
+        const angle = planet.container.rotation
+        const x = Math.cos(angle) * planet.orbitRadius
+        const y = Math.sin(angle) * planet.orbitRadius
+        const newY = y + planet.size + 5
+
+        // Nur updaten wenn Änderung > 0.5 Pixel (vermeidet Flimmern)
+        const dx = Math.abs(planet.label.x - x)
+        const dy = Math.abs(planet.label.y - newY)
+        if (dx > 0.5 || dy > 0.5) {
+          planet.label.x = x
+          planet.label.y = newY
+        }
+      }
     }
   })
-  
+
   animationId = requestAnimationFrame(animate)
 }
 
